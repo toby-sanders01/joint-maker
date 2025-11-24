@@ -6,72 +6,80 @@
 <title>Truss Joint Diagram Generator</title>
 <style>
   :root{
-    --bg:#ffffff;
-    --panel:#f5f7ff;
-    --muted:#6b6f7d;
-    --text:#10131a;
-    --accent:#3b57b3;
+    --bg:#fdfefe;
+    --panel:#ffffff;
+    --muted:#5b6374;
+    --text:#0d1b2a;
+    --accent:#2f3fcf;
     --green:#2e7d32;
     --blue:#1e88e5;
     --red:#c62828;
     --gray:#7a7f8d;
-    --border:#d3d7e4;
+    --border:#e3e6f0;
+    --shadow:0 16px 60px rgba(9,21,54,.08);
   }
   *{box-sizing:border-box}
   body{
     margin:0;
-    background:#f2f4fb;
+    background:var(--bg);
     color:var(--text);
-    font:15px/1.4 "Times New Roman", Times, serif;
+    font:15px/1.6 "Helvetica Neue", Arial, sans-serif;
     min-height:100vh;
     display:flex;
     flex-direction:column;
     align-items:stretch;
   }
   header{
-    padding:16px 20px;
+    padding:16px 22px;
     display:flex;
     gap:10px 12px;
     flex-wrap:wrap;
     align-items:center;
     justify-content:space-between;
     border-bottom:1px solid var(--border);
-    background:#ffffff;
+    background:#fff;
     position:sticky; top:0; z-index:5;
+    box-shadow:0 10px 30px rgba(0,0,0,.04);
   }
   header h1{
     margin:0;
-    font-weight:700;
-    font-size:18px;
+    font-weight:800;
+    font-size:19px;
     letter-spacing:.2px;
+    display:flex;
+    align-items:center;
+    gap:10px;
   }
   .badge{
     font-size:11px;
-    padding:2px 7px;
+    padding:4px 8px;
     border-radius:999px;
-    background:#eef2ff;
-    color:#3346a0;
-    border:1px solid #cdd6ff;
-    margin-left:10px;
+    background:#eef1ff;
+    color:#2f3fcf;
+    border:1px solid #dbe0ff;
   }
   .btnbar{display:flex; gap:10px; flex-wrap:wrap}
   button{
-    background:#2f4bb8;
+    background:var(--accent);
     color:#fff;
-    border:1px solid #2a43a3;
+    border:1px solid #2634a4;
     padding:10px 14px;
     border-radius:10px;
     cursor:pointer;
     font-weight:700;
+    transition:transform .08s ease, box-shadow .15s ease;
+    box-shadow:0 8px 20px rgba(47,63,207,.18);
   }
-  .ghost{background:#f3f5ff; color:#23316c; border-color:#cfd6ff}
+  button:hover{transform:translateY(-1px); box-shadow:0 12px 24px rgba(47,63,207,.18);}
+  .ghost{background:#f7f8ff; color:#1a265f; border-color:#d4d9ff; box-shadow:none}
+  .subtle{background:#f8fafc; color:#102047; border-color:var(--border); box-shadow:none}
   main{
     display:grid;
-    grid-template-columns: clamp(680px, 46vw, 800px) 1fr;
+    grid-template-columns: clamp(700px, 48vw, 880px) 1fr;
     gap:18px;
-    padding:18px;
+    padding:24px;
     width:100%;
-    max-width:1600px;
+    max-width:1680px;
     margin:0 auto;
     flex:1;
   }
@@ -79,23 +87,25 @@
     main{grid-template-columns: 1fr; }
   }
   .panel{
-    background:#ffffff;
+    background:var(--panel);
     border:1px solid var(--border);
-    border-radius:14px;
-    box-shadow: 0 6px 18px rgba(0,0,0,.06);
+    border-radius:16px;
+    box-shadow: var(--shadow);
   }
-  .controls{ padding:16px; display:flex; flex-direction:column; gap:12px; min-width:660px;}
-  label{display:block; font-weight:700; margin-bottom:6px;}
-  input[type="text"], input[type="number"], select{
+  .controls{ padding:18px; display:flex; flex-direction:column; gap:14px; min-width:680px;}
+  label{display:block; font-weight:800; margin-bottom:6px; letter-spacing:.1px;}
+  input[type="text"], input[type="number"], select, textarea{
     width:100%;
     background:#fff;
     border:1px solid var(--border);
-    color:#2a2f3b;
-    border-radius:10px;
+    color:#1b2235;
+    border-radius:12px;
     padding:10px 12px;
     outline:none;
+    font:14px/1.4 "Helvetica Neue", Arial, sans-serif;
   }
-  input[type="text"]::placeholder, input[type="number"]::placeholder{color:#9aa0af}
+  textarea{min-height:120px; resize:vertical;}
+  input[type="text"]::placeholder, input[type="number"]::placeholder, textarea::placeholder{color:#9aa0af}
   .row{
     display:grid;
     grid-template-columns: 160px 210px 240px 170px 56px;
@@ -103,19 +113,20 @@
   }
   .head{grid-template-columns: 160px 210px 240px 170px 56px;}
   .muted{color:var(--muted); font-size:13px}
-  .canvas-wrap{position:relative; padding:12px;}
-  canvas{width:100%; height:auto; border-radius:10px; background:#ffffff; border:1px solid var(--border)}
-  .legend{display:flex; gap:14px; padding:10px 14px; border-top:1px solid var(--border); color:#333; font-size:13px; background:#fafbff; border-radius:0 0 14px 14px}
+  .canvas-wrap{position:relative; padding:16px; background:linear-gradient(180deg, #fff, #f8fbff);}
+  canvas{width:100%; height:auto; border-radius:12px; background:#ffffff; border:1px solid var(--border)}
+  .legend{display:flex; gap:14px; padding:12px 14px; border-top:1px solid var(--border); color:#333; font-size:13px; background:#fbfcff; border-radius:0 0 14px 14px}
   .chip{display:inline-flex; align-items:center; gap:6px}
   .sw{width:14px; height:4px; border-radius:2px; background:var(--gray); display:inline-block}
   .sw.green{background:var(--green)}
   .sw.blue{background:var(--blue)}
   .sw.red{background:var(--red)}
   .sw.gray{background:#8a8f9e}
-  .member-card{padding:12px; border:1px dashed var(--border); border-radius:12px; background:#fbfcff}
+  .member-card{padding:12px; border:1px dashed var(--border); border-radius:12px; background:#f8faff}
   .delete{
     padding:10px 0; text-align:center; border-radius:8px;
-    background:#f2f4ff; border:1px solid #cfd6ff; color:#2f3f8c; font-weight:700;
+    background:#f4f6ff; border:1px solid #d6dcff; color:#2f3f8c; font-weight:700;
+    box-shadow:none;
   }
   .delete:hover{background:#e8edff}
   .quickdir{display:grid; grid-template-columns: repeat(8, 1fr); gap:4px; margin-top:6px;}
@@ -129,7 +140,22 @@
     font-size:14px;
     line-height:1;
   }
-  .tip{color:#4b587a; font-size:12px}
+  .tip{color:#5b6788; font-size:12px}
+  .truss-bar{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+  .joint-tabs{display:flex; gap:8px; flex-wrap:wrap;}
+  .joint-chip{
+    padding:8px 12px;
+    border-radius:12px;
+    border:1px solid var(--border);
+    background:#fff;
+    color:#13244f;
+    cursor:pointer;
+    font-weight:700;
+  }
+  .joint-chip.active{background:#eef1ff; color:#1c2e92; border-color:#cfd6ff;}
+  .stack{display:flex; flex-direction:column; gap:10px;}
+  .structure-card{border:1px dashed var(--border); padding:12px; border-radius:12px; background:#fdfdff;}
+  .inline-actions{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
 </style>
 </head>
 <body>
@@ -138,6 +164,7 @@
     <div class="btnbar">
       <button id="exportJpegBtn" title="Download cropped JPEG (high-res)">Export JPEG</button>
       <button id="exportSvgBtn" class="ghost" title="Download cropped SVG">Export SVG</button>
+      <button id="exportZipBtn" class="ghost" title="Download every joint as a ZIP">Export ZIP</button>
       <button id="clearBtn" class="ghost" title="Clear all members">Clear</button>
     </div>
   </header>
@@ -149,6 +176,26 @@
           <label for="jointName">Joint name</label>
           <input id="jointName" type="text" placeholder="A" maxlength="6" />
           <div class="tip">Names are auto-uppercased. The diagram updates as you type.</div>
+        </div>
+
+        <div class="stack">
+          <label>Truss workspace</label>
+          <div class="truss-bar">
+            <div id="jointTabs" class="joint-tabs"></div>
+            <button id="addJointBtn" class="ghost" title="Add another joint to this truss">+ Joint</button>
+          </div>
+          <div class="structure-card">
+            <label for="structureText" style="margin:0;">Full truss structure</label>
+            <textarea id="structureText" placeholder="A,AB,0,Tension,50
+A,AC,45,Compression,30
+B,BA,180,Reaction,18"></textarea>
+            <div class="muted">Enter one member per line as <b>Joint, Member, Direction°, Sense, Magnitude</b>. Sense can be blank. JSON arrays of joints are also supported.</div>
+            <div class="inline-actions">
+              <button id="applyStructureBtn" class="subtle">Apply structure</button>
+              <button id="importFileBtn" class="ghost" title="Import structure from JSON/CSV">Batch import file</button>
+              <input type="file" id="importFile" accept=".json,.csv,.txt" style="display:none" />
+            </div>
+          </div>
         </div>
 
         <div class="member-card">
@@ -209,11 +256,84 @@
   const addMemberBtn = $('#addMemberBtn');
   const exportJpegBtn = $('#exportJpegBtn');
   const exportSvgBtn = $('#exportSvgBtn');
+  const exportZipBtn = $('#exportZipBtn');
   const clearBtn = $('#clearBtn');
   const jointInput = $('#jointName');
+  const jointTabs = $('#jointTabs');
+  const addJointBtn = $('#addJointBtn');
+  const structureText = $('#structureText');
+  const applyStructureBtn = $('#applyStructureBtn');
+  const importFileBtn = $('#importFileBtn');
+  const importFileInput = $('#importFile');
 
+  const truss = new Map();
+  let currentJoint = 'A';
   let memberId = 0;
   let lastRender = null; // geometry and bbox for exports
+
+  function updateJointTabs(){
+    jointTabs.innerHTML = '';
+    for(const [name] of truss){
+      const btn = document.createElement('button');
+      btn.className = 'joint-chip' + (name === currentJoint ? ' active' : '');
+      btn.textContent = name;
+      btn.title = `Switch to joint ${name}`;
+      btn.addEventListener('click', () => switchJoint(name));
+      jointTabs.appendChild(btn);
+    }
+  }
+
+  function saveCurrentJoint(){
+    const members = getMembers();
+    truss.set(currentJoint, members);
+  }
+
+  function clearMembersDom(){
+    membersWrap.innerHTML = '';
+    memberId = 0;
+  }
+
+  function loadMembers(list){
+    clearMembersDom();
+    if(!list || !list.length){
+      makeMemberRow({});
+      return;
+    }
+    list.forEach(m => makeMemberRow(m));
+  }
+
+  function switchJoint(name){
+    const target = sanitizeJointName(name);
+    saveCurrentJoint();
+    currentJoint = target;
+    jointInput.value = target;
+    loadMembers(truss.get(target));
+    updateJointTabs();
+    draw();
+  }
+
+  function addJoint(name=''){ 
+    const clean = sanitizeJointName(name || `J${truss.size+1}`);
+    if(!truss.has(clean)){
+      truss.set(clean, []);
+    }
+    switchJoint(clean);
+  }
+
+  function resetToSingleJoint(){
+    truss.clear();
+    currentJoint = 'A';
+    truss.set(currentJoint, []);
+    jointInput.value = currentJoint;
+    loadMembers([]);
+    updateJointTabs();
+    draw();
+  }
+
+  function sanitizeJointName(name){
+    const val = (name || '').trim().toUpperCase().slice(0, 6) || 'A';
+    return val;
+  }
 
   function makeMemberRow(init={}){
     memberId += 1;
@@ -274,7 +394,7 @@
   }
 
   function getMembers(){
-    const joint = (jointInput.value || 'A').trim().toUpperCase();
+    const joint = sanitizeJointName(jointInput.value || currentJoint);
     return $$('.row', membersWrap).map(row => {
       const name = $('.memName', row).value.trim().toUpperCase();
       const dirVal = $('.dir', row).value;
@@ -284,6 +404,65 @@
       const mag = magStr === '' ? null : parseFloat(magStr);
       return { name, dir: (dir!==null && Number.isFinite(dir)) ? dir : null, sense, mag, magStr, joint };
     });
+  }
+
+  function parseStructure(text){
+    const res = new Map();
+    const raw = (text || '').trim();
+    if(!raw) return res;
+    try{
+      const data = JSON.parse(raw);
+      if(Array.isArray(data)){
+        for(const entry of data){
+          const j = sanitizeJointName(entry.joint || entry.name || '');
+          if(!j) continue;
+          const members = Array.isArray(entry.members) ? entry.members.map(m => ({
+            name:(m.name||'').toString().toUpperCase(),
+            dir: m.dir===null||m.dir===undefined?null:Number(m.dir),
+            sense: m.sense||m.type||'',
+            mag: m.mag===null||m.mag===undefined?null:Number(m.mag),
+            magStr: m.mag===null||m.mag===undefined? '': String(m.mag)
+          })) : [];
+          res.set(j, members);
+        }
+      }
+      if(res.size) return res;
+    }catch(e){ /* fall back to line parser */ }
+
+    const lines = raw.split(/\r?\n/);
+    for(const line of lines){
+      const clean = line.trim();
+      if(!clean || clean.startsWith('#')) continue;
+      const parts = clean.split(/[,;\t]/).map(p=>p.trim());
+      if(parts.length < 2) continue;
+      const [jRaw, nameRaw, dirRaw, senseRaw, magRaw] = parts;
+      const joint = sanitizeJointName(jRaw);
+      if(!joint) continue;
+      const members = res.get(joint) || [];
+      const dir = dirRaw === '' || dirRaw === undefined ? null : Number(dirRaw);
+      const mag = magRaw === '' || magRaw === undefined ? null : Number(magRaw);
+      members.push({
+        name:(nameRaw||'').toUpperCase(),
+        dir: Number.isFinite(dir)?dir:null,
+        sense: senseRaw || '',
+        mag: Number.isFinite(mag)?mag:null,
+        magStr: (magRaw??'').toString(),
+        joint
+      });
+      res.set(joint, members);
+    }
+    return res;
+  }
+
+  function applyStructure(res){
+    if(!res || !res.size) return;
+    saveCurrentJoint();
+    truss.clear();
+    for(const [j, members] of res){
+      truss.set(sanitizeJointName(j), members);
+    }
+    const first = res.keys().next().value || 'A';
+    switchJoint(first);
   }
 
   function clearCanvas(){
@@ -376,7 +555,8 @@
     const cx = Math.round(w*0.62);
     const cy = Math.round(h*0.50);
 
-    const joint = (jointInput.value || 'A').trim().toUpperCase();
+    const joint = sanitizeJointName(jointInput.value || currentJoint);
+    jointInput.value = joint;
     const L = Math.min(w,h) * 0.28;
 
     const style = getComputedStyle(document.documentElement);
@@ -603,30 +783,22 @@
     link.remove();
   }
 
-  // High-res (4x) cropped JPEG export by re-rendering vector content
-  exportJpegBtn.addEventListener('click', () => {
-    const name = (jointInput.value||'joint').trim() || 'joint';
+  function renderJpegDataURI(name){
+    const safeName = (name || 'joint').trim() || 'joint';
     if(!lastRender){ draw(); }
     const SCALE = 4; // 4x size
     const {bbox, segments, labels, joint} = lastRender;
 
     const off = document.createElement('canvas');
-    // upscale with DPR for retina-quality
     const PX = Math.max(1, Math.round(bbox.w * SCALE * DPR));
     const PY = Math.max(1, Math.round(bbox.h * SCALE * DPR));
     off.width = PX; off.height = PY;
     const c = off.getContext('2d');
-    // white background
     c.fillStyle = '#ffffff';
     c.fillRect(0,0,PX,PY);
-    // scale and translate so we re-draw in vector at higher res, cropped to bbox
     c.setTransform(DPR*SCALE, 0, 0, DPR*SCALE, -bbox.x*DPR*SCALE, -bbox.y*DPR*SCALE);
 
-    // helpers reuse
-    const style = getComputedStyle(document.documentElement);
     c.lineCap = 'round';
-
-    // draw segments
     for(const s of segments){
       if(s.dashed){
         c.strokeStyle = 'rgba(120,120,130,.5)';
@@ -641,19 +813,17 @@
         drawArrow(s.x1,s.y1,s.x2,s.y2, s.color, s.headAtEnd, null, c);
       }
     }
-    // joint
     c.fillStyle = '#000';
     c.beginPath();
     c.arc(joint.x, joint.y, 4, 0, Math.PI*2);
     c.fill();
 
-    // labels
     for(const p of labels){
       c.save();
       c.translate(p.x, p.y);
       c.rotate(-(p.rot || 0));
       const fontSize = /(\d+)px/.exec(p.font||'16px')?.[1] || 16;
-      c.font = `${fontSize}px "Times New Roman", Times, serif`; // scaled by transform
+      c.font = `${fontSize}px "Times New Roman", Times, serif`;
       c.textAlign = 'center';
       c.textBaseline = 'middle';
       if(p.halo){
@@ -668,17 +838,16 @@
       c.restore();
     }
 
-    downloadDataURI(`${name}.jpg`, off.toDataURL('image/jpeg', 1.0));
-  });
+    return {name: safeName, dataURI: off.toDataURL('image/jpeg', 1.0)};
+  }
 
-  exportSvgBtn.addEventListener('click', () => {
-    const name = (jointInput.value||'joint').trim() || 'joint';
+  function buildSvgString(name){
+    const safeName = (name || 'joint').trim() || 'joint';
     if(!lastRender){ draw(); }
     const {bbox, segments, labels, joint} = lastRender;
 
     function esc(s){return (''+s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 
-    // Build SVG with cropped viewBox
     let svg = [];
     svg.push(`<svg xmlns="http://www.w3.org/2000/svg" width="${bbox.w}" height="${bbox.h}" viewBox="${bbox.x} ${bbox.y} ${bbox.w} ${bbox.h}" font-family="Times New Roman, Times, serif">`);
     svg.push(`<defs>
@@ -709,17 +878,14 @@
       return null;
     }
 
-    // Segments
     for(const s of segments){
       const dashed = s.dashed;
       const mk = markerId(s.color, s.headAtEnd);
       svg.push(`<path d="M ${s.x1} ${s.y1} L ${s.x2} ${s.y2}" fill="none" stroke="${esc(s.color)}" stroke-width="3" stroke-linecap="round" ${dashed?'stroke-dasharray="6 6"':''} ${mk? (s.headAtEnd?`marker-end="url(#${mk})"`:`marker-start="url(#${mk})"`) : ''} />`);
     }
 
-    // Joint
     svg.push(`<circle cx="${joint.x}" cy="${joint.y}" r="4" fill="#000"/>`);
 
-    // Labels (halo then fill)
     for(const p of labels){
       const deg = -(p.rot||0) * 180/Math.PI;
       const fontSize = /(\d+)px/.exec(p.font||'16px')?.[1] || 16;
@@ -730,7 +896,17 @@
     }
 
     svg.push(`</svg>`);
-    const blob = new Blob([svg.join('')], {type:'image/svg+xml'});
+    return {name: safeName, svg: svg.join('')};
+  }
+
+  exportJpegBtn.addEventListener('click', () => {
+    const {name, dataURI} = renderJpegDataURI(jointInput.value||'joint');
+    downloadDataURI(`${name}.jpg`, dataURI);
+  });
+
+  exportSvgBtn.addEventListener('click', () => {
+    const {name, svg} = buildSvgString(jointInput.value||'joint');
+    const blob = new Blob([svg], {type:'image/svg+xml'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -741,17 +917,187 @@
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
 
+  function dataUriToBytes(uri){
+    const base64 = (uri.split(',')[1] || '').trim();
+    const bin = atob(base64);
+    const bytes = new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+    return bytes;
+  }
+
+  const utf8 = new TextEncoder();
+  function textToBytes(str){
+    return utf8.encode(str);
+  }
+
+  const CRC32_TABLE = (() => {
+    let c; const table = new Uint32Array(256);
+    for(let n=0;n<256;n++){
+      c = n;
+      for(let k=0;k<8;k++) c = c & 1 ? 0xEDB88320 ^ (c>>>1) : c>>>1;
+      table[n] = c >>> 0;
+    }
+    return table;
+  })();
+
+  function crc32(bytes){
+    let crc = 0 ^ (-1);
+    for(let i=0;i<bytes.length;i++){
+      crc = (crc >>> 8) ^ CRC32_TABLE[(crc ^ bytes[i]) & 0xFF];
+    }
+    return (crc ^ (-1)) >>> 0;
+  }
+
+  function dosDateTime(date=new Date()){
+    const time = (date.getHours() << 11) | (date.getMinutes() << 5) | (date.getSeconds() >> 1);
+    const dosDate = ((date.getFullYear() - 1980) << 9) | ((date.getMonth() + 1) << 5) | date.getDate();
+    return {time, date: dosDate};
+  }
+
+  function buildZip(files){
+    const parts = [];
+    const central = [];
+    let offset = 0;
+    const records = [];
+
+    for(const f of files){
+      const nameBytes = textToBytes(f.name);
+      const dataBytes = f.bytes instanceof Uint8Array ? f.bytes : textToBytes(String(f.bytes||''));
+      const crc = crc32(dataBytes);
+      const {time, date} = dosDateTime();
+      const local = new Uint8Array(30 + nameBytes.length + dataBytes.length);
+      const view = new DataView(local.buffer);
+      view.setUint32(0, 0x04034b50, true);
+      view.setUint16(4, 20, true);
+      view.setUint16(6, 0, true);
+      view.setUint16(8, 0, true); // store (no compression)
+      view.setUint16(10, time, true);
+      view.setUint16(12, date, true);
+      view.setUint32(14, crc, true);
+      view.setUint32(18, dataBytes.length, true);
+      view.setUint32(22, dataBytes.length, true);
+      view.setUint16(26, nameBytes.length, true);
+      view.setUint16(28, 0, true);
+      local.set(nameBytes, 30);
+      local.set(dataBytes, 30 + nameBytes.length);
+      parts.push(local);
+      records.push({nameBytes, crc, size:dataBytes.length, offset, time, date});
+      offset += local.length;
+    }
+
+    let centralSize = 0;
+    for(const r of records){
+      const cd = new Uint8Array(46 + r.nameBytes.length);
+      const view = new DataView(cd.buffer);
+      view.setUint32(0, 0x02014b50, true);
+      view.setUint16(4, 0x14, true);
+      view.setUint16(6, 20, true);
+      view.setUint16(8, 0, true);
+      view.setUint16(10, 0, true);
+      view.setUint16(12, r.time, true);
+      view.setUint16(14, r.date, true);
+      view.setUint32(16, r.crc, true);
+      view.setUint32(20, r.size, true);
+      view.setUint32(24, r.size, true);
+      view.setUint16(28, r.nameBytes.length, true);
+      view.setUint16(30, 0, true);
+      view.setUint16(32, 0, true);
+      view.setUint16(34, 0, true);
+      view.setUint16(36, 0, true);
+      view.setUint32(38, 0, true);
+      view.setUint32(42, r.offset, true);
+      cd.set(r.nameBytes, 46);
+      central.push(cd);
+      centralSize += cd.length;
+    }
+
+    const end = new Uint8Array(22);
+    const endView = new DataView(end.buffer);
+    endView.setUint32(0, 0x06054b50, true);
+    endView.setUint16(4, records.length, true);
+    endView.setUint16(6, records.length, true);
+    endView.setUint32(8, centralSize, true);
+    endView.setUint32(12, offset, true);
+    endView.setUint16(16, 0, true);
+    endView.setUint16(18, 0, true);
+    endView.setUint16(20, 0, true);
+
+    return new Blob([...parts, ...central, end], {type:'application/zip'});
+  }
+
+  function downloadBlob(name, blob){
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function exportAllAsZip(){
+    saveCurrentJoint();
+    const original = currentJoint;
+    if(!truss.size){ truss.set(currentJoint, getMembers()); }
+    const files = [];
+    for(const [name] of truss){
+      switchJoint(name);
+      const jpeg = renderJpegDataURI(name);
+      const svg = buildSvgString(name);
+      files.push({name: `${jpeg.name}.jpg`, bytes: dataUriToBytes(jpeg.dataURI)});
+      files.push({name: `${svg.name}.svg`, bytes: textToBytes(svg.svg)});
+    }
+    switchJoint(original);
+    const zipBlob = buildZip(files);
+    downloadBlob('truss-joints.zip', zipBlob);
+  }
+
   clearBtn.addEventListener('click', () => {
-    membersWrap.innerHTML = '';
-    makeMemberRow({});
+    loadMembers([]);
+    truss.set(currentJoint, []);
     draw();
   });
-  // FIX: wire up the + Member button
-  addMemberBtn.addEventListener('click', () => makeMemberRow({}));
-  jointInput.addEventListener('input', draw);
 
-  // Initial row
+  addMemberBtn.addEventListener('click', () => makeMemberRow({}));
+
+  jointInput.addEventListener('input', () => {
+    const clean = sanitizeJointName(jointInput.value || currentJoint);
+    jointInput.value = clean;
+    if(clean !== currentJoint){
+      const members = getMembers();
+      truss.delete(currentJoint);
+      currentJoint = clean;
+      truss.set(currentJoint, members);
+      updateJointTabs();
+    }
+    draw();
+  });
+
+  addJointBtn.addEventListener('click', () => addJoint(`J${truss.size+1}`));
+
+  applyStructureBtn.addEventListener('click', () => {
+    const parsed = parseStructure(structureText.value);
+    applyStructure(parsed);
+  });
+
+  importFileBtn.addEventListener('click', () => importFileInput.click());
+  importFileInput.addEventListener('change', async (e) => {
+    const file = e.target.files?.[0];
+    if(!file) return;
+    const text = await file.text();
+    const parsed = parseStructure(text);
+    applyStructure(parsed);
+    importFileInput.value = '';
+  });
+
+  exportZipBtn.addEventListener('click', exportAllAsZip);
+
+  // Initial state
+  resetToSingleJoint();
   makeMemberRow({ name:'AB', dir: 45 });
+  truss.set(currentJoint, getMembers());
+  updateJointTabs();
   fitCanvas();
   draw();
 })();
