@@ -355,6 +355,65 @@ B,BA,180,Reaction,18"></textarea>
     switchJoint(first);
   }
 
+  function parseStructure(text){
+    const res = new Map();
+    const raw = (text || '').trim();
+    if(!raw) return res;
+    try{
+      const data = JSON.parse(raw);
+      if(Array.isArray(data)){
+        for(const entry of data){
+          const j = sanitizeJointName(entry.joint || entry.name || '');
+          if(!j) continue;
+          const members = Array.isArray(entry.members) ? entry.members.map(m => ({
+            name:(m.name||'').toString().toUpperCase(),
+            dir: m.dir===null||m.dir===undefined?null:Number(m.dir),
+            sense: m.sense||m.type||'',
+            mag: m.mag===null||m.mag===undefined?null:Number(m.mag),
+            magStr: m.mag===null||m.mag===undefined? '': String(m.mag)
+          })) : [];
+          res.set(j, members);
+        }
+      }
+      if(res.size) return res;
+    }catch(e){ /* fall back to line parser */ }
+
+    const lines = raw.split(/\r?\n/);
+    for(const line of lines){
+      const clean = line.trim();
+      if(!clean || clean.startsWith('#')) continue;
+      const parts = clean.split(/[,;\t]/).map(p=>p.trim());
+      if(parts.length < 2) continue;
+      const [jRaw, nameRaw, dirRaw, senseRaw, magRaw] = parts;
+      const joint = sanitizeJointName(jRaw);
+      if(!joint) continue;
+      const members = res.get(joint) || [];
+      const dir = dirRaw === '' || dirRaw === undefined ? null : Number(dirRaw);
+      const mag = magRaw === '' || magRaw === undefined ? null : Number(magRaw);
+      members.push({
+        name:(nameRaw||'').toUpperCase(),
+        dir: Number.isFinite(dir)?dir:null,
+        sense: senseRaw || '',
+        mag: Number.isFinite(mag)?mag:null,
+        magStr: (magRaw??'').toString(),
+        joint
+      });
+      res.set(joint, members);
+    }
+    return res;
+  }
+
+  function applyStructure(res){
+    if(!res || !res.size) return;
+    saveCurrentJoint();
+    truss.clear();
+    for(const [j, members] of res){
+      truss.set(sanitizeJointName(j), members);
+    }
+    const first = res.keys().next().value || 'A';
+    switchJoint(first);
+  }
+
   function clearCanvas(){
     const w = cnv.width / DPR;
     const h = cnv.height / DPR;
