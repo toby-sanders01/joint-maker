@@ -3,90 +3,182 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="Single-page truss joint designer with refined Tailwind styling and export-ready outputs." />
+<meta name="theme-color" content="#4f46e5" />
 <title>Truss Joint Diagram Generator</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          brand: {
+            50: '#eef2ff',
+            100: '#e0e7ff',
+            500: '#4f46e5',
+            600: '#4338ca',
+            700: '#3730a3',
+          }
+        },
+        fontFamily: {
+          display: ['Inter', 'system-ui', 'sans-serif'],
+        },
+      }
+    }
+  }
+</script>
 <style>
+  :root {
+    --green: #10b981;
+    --blue: #2563eb;
+    --red: #ef4444;
+  }
   body{font-family: "Inter", system-ui, -apple-system, sans-serif;}
   canvas{width:100%; height:auto;}
 </style>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen">
-  <header class="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur">
-    <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-4">
-      <h1 class="flex items-center gap-3 text-xl font-bold tracking-tight text-slate-900">
-        Truss Joint Diagram
-        <span class="rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">single-file app</span>
-      </h1>
+
+<body class="bg-gradient-to-br from-slate-50 via-white to-indigo-50 text-slate-900 min-h-screen">
+  <header class="sticky top-0 z-10 border-b border-white/60 bg-white/80 backdrop-blur">
+    <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-4">
+      <div class="flex flex-col gap-1">
+        <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Bridge Toolkit</p>
+        <div class="flex items-center gap-3">
+          <h1 class="text-2xl font-bold tracking-tight text-slate-900">Truss Joint Designer</h1>
+          <span class="rounded-full border border-brand-100 bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">Ready for Vercel</span>
+        </div>
+        <p class="text-sm text-slate-600">Single-page export tool for crisp, publication-ready joint diagrams.</p>
+      </div>
       <div class="flex flex-wrap gap-2">
-        <button id="exportJpegBtn" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm ring-1 ring-indigo-500 transition hover:-translate-y-0.5 hover:bg-indigo-500">Export JPEGs</button>
-        <button id="exportSvgBtn" class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-0.5">Export SVG</button>
-        <button id="exportZipBtn" class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-0.5">Export ZIP</button>
-        <button id="clearBtn" class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-0.5">Clear</button>
+        <button id="exportJpegBtn" class="rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-brand-600/30 ring-1 ring-brand-500 transition hover:-translate-y-0.5 hover:bg-brand-500">Export JPEGs</button>
+        <button id="exportSvgBtn" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-0.5">Export SVG</button>
+        <button id="exportZipBtn" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-0.5">Export ZIP</button>
+        <button id="clearBtn" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-0.5">Reset</button>
       </div>
     </div>
   </header>
 
-  <main class="mx-auto grid w-full max-w-6xl flex-1 grid-cols-1 gap-6 px-6 py-6 lg:grid-cols-[minmax(700px,1fr)_minmax(420px,0.8fr)]">
-    <section class="rounded-2xl border border-slate-200 bg-white shadow-lg shadow-slate-200/50">
-      <div class="flex flex-col gap-6 p-6">
-        <div>
-          <label for="jointName" class="mb-2 block text-sm font-semibold text-slate-800">Joint name</label>
-          <input id="jointName" type="text" placeholder="A" maxlength="6" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-900 shadow-inner shadow-slate-100 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
-          <div class="mt-2 text-xs text-slate-500">Names are auto-uppercased. The diagram updates as you type.</div>
-        </div>
-
+  <main class="mx-auto grid w-full max-w-6xl flex-1 grid-cols-1 gap-6 px-6 py-8 lg:grid-cols-[minmax(640px,1fr)_minmax(420px,0.8fr)]">
+    <section class="rounded-3xl border border-white/80 bg-white/90 shadow-2xl shadow-slate-200/60 ring-1 ring-slate-100 backdrop-blur">
+      <div class="flex flex-col gap-8 p-8">
         <div class="flex flex-col gap-3">
-          <label class="text-sm font-semibold text-slate-800">Truss workspace</label>
-          <div class="flex flex-wrap items-center gap-2">
-            <div id="jointTabs" class="flex flex-wrap gap-2"></div>
-            <button id="addJointBtn" class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-0.5" title="Add another joint to this truss">+ Joint</button>
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Joint</p>
+              <h2 class="text-lg font-semibold text-slate-900">Identity & switching</h2>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <div id="jointTabs" class="flex flex-wrap gap-2"></div>
+              <button id="addJointBtn" class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-0.5" title="Add another joint to this truss">+ Joint</button>
+            </div>
           </div>
-          <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 p-4">
-            <label for="structureText" class="mb-2 block text-sm font-semibold text-slate-800">Full truss structure</label>
-            <textarea id="structureText" class="w-full min-h-[120px] rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-900 shadow-inner shadow-slate-100 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200" placeholder="A,AB,0,Tension,50
-A,AC,45,Compression,30
-B,BA,180,Reaction,18"></textarea>
-            <div class="mt-2 text-xs text-slate-500">Enter one member per line as <b>Joint, Member, Direction°, Sense, Magnitude</b>. Sense can be blank. JSON arrays of joints are also supported.</div>
-            <div class="mt-3 flex flex-wrap items-center gap-2">
-              <button id="applyStructureBtn" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-0.5">Apply structure</button>
-              <button id="importFileBtn" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-0.5" title="Import structure from JSON/CSV">Batch import file</button>
-              <input type="file" id="importFile" accept=".json,.csv,.txt" class="hidden" />
+          <div class="grid gap-3 md:grid-cols-2">
+            <label class="flex flex-col gap-2 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 shadow-inner shadow-slate-100">
+              <span class="text-sm font-semibold text-slate-800">Joint name</span>
+              <input id="jointName" type="text" placeholder="A" maxlength="6" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-900 shadow-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200" />
+              <span class="text-xs text-slate-500">Auto-uppercased and synced across exports.</span>
+            </label>
+            <div class="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-4 shadow-sm">
+              <div class="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-brand-50 text-brand-600">★</span>
+                Single member focus
+              </div>
+              <p class="mt-2 text-sm text-slate-600">Streamlined for one precise member per joint—no clutter, no duplicate rows.</p>
             </div>
           </div>
         </div>
 
-        <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 p-4">
-          <div class="grid grid-cols-[160px_210px_240px_170px_56px] items-end gap-3 text-sm font-semibold text-slate-800 max-lg:grid-cols-1">
-            <div>Member name</div>
-            <div>Direction (°)</div>
-            <div>Type / Sense</div>
-            <div>Magnitude (kN)</div>
-            <div></div>
+        <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-5 shadow-inner shadow-slate-100">
+          <div class="flex items-center justify-between gap-2">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Member</p>
+              <h3 class="text-lg font-semibold text-slate-900">Direction & loading</h3>
+              <p class="text-sm text-slate-600">Complete a single member entry; the diagram updates instantly.</p>
+            </div>
+            <div class="text-xs text-slate-500">Tension → green · Compression → blue · Reaction → red</div>
           </div>
 
-          <div id="members" class="mt-3 flex flex-col gap-3"></div>
+          <div class="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[180px_1fr_1fr_160px] lg:items-start">
+            <label class="flex flex-col gap-2">
+              <span class="text-sm font-semibold text-slate-800">Member name</span>
+              <input id="memberName" type="text" placeholder="AB" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-900 shadow-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200" />
+            </label>
 
-          <div class="mt-4">
-            <button id="addMemberBtn" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm ring-1 ring-indigo-500 transition hover:-translate-y-0.5 hover:bg-indigo-500">+ Member</button>
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center justify-between text-sm font-semibold text-slate-800">
+                <span>Direction (°)</span>
+                <span class="text-xs font-medium text-slate-500">Quick picks</span>
+              </div>
+              <div class="grid grid-cols-2 gap-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm md:grid-cols-4 lg:grid-cols-4">
+                <input id="memberDir" type="number" step="0.1" min="0" max="360" class="col-span-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-900 shadow-inner shadow-slate-100 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200 md:col-span-1" placeholder="0 → right" />
+                <div class="grid grid-cols-4 gap-1 col-span-2 md:col-span-3">
+                  <button class="dirbtn rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-sm font-semibold text-slate-700 shadow-sm" data-deg="0" title="Right">→</button>
+                  <button class="dirbtn rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-sm font-semibold text-slate-700 shadow-sm" data-deg="45" title="NE">↗</button>
+                  <button class="dirbtn rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-sm font-semibold text-slate-700 shadow-sm" data-deg="90" title="Up">↑</button>
+                  <button class="dirbtn rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-sm font-semibold text-slate-700 shadow-sm" data-deg="135" title="NW">↖</button>
+                  <button class="dirbtn rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-sm font-semibold text-slate-700 shadow-sm" data-deg="180" title="Left">←</button>
+                  <button class="dirbtn rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-sm font-semibold text-slate-700 shadow-sm" data-deg="225" title="SW">↙</button>
+                  <button class="dirbtn rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-sm font-semibold text-slate-700 shadow-sm" data-deg="270" title="Down">↓</button>
+                  <button class="dirbtn rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-sm font-semibold text-slate-700 shadow-sm" data-deg="315" title="SE">↘</button>
+                </div>
+              </div>
+            </div>
+
+            <label class="flex flex-col gap-2">
+              <span class="text-sm font-semibold text-slate-800">Sense / type</span>
+              <select id="memberSense" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-900 shadow-inner shadow-slate-100 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200">
+                <option value="">— direction only —</option>
+                <option value="Tension">Tension (green)</option>
+                <option value="Compression">Compression (blue)</option>
+                <option value="Reaction">Reaction (red)</option>
+              </select>
+              <span class="text-xs text-slate-500">Arrows flip automatically for compression and reaction.</span>
+            </label>
+
+            <label class="flex flex-col gap-2">
+              <span class="text-sm font-semibold text-slate-800">Magnitude (kN)</span>
+              <input id="memberMag" type="number" step="0.01" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-900 shadow-inner shadow-slate-100 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200" placeholder="e.g., 64.94" />
+              <span class="text-xs text-slate-500">Shown over the member line when provided.</span>
+            </label>
           </div>
         </div>
 
-        <div class="text-xs text-slate-500">
-          • <b>Tension</b> = arrow points away from the joint (green).<br/>
-          • <b>Compression</b> = arrow points toward the joint (blue).<br/>
-          • <b>Reaction</b> = arrow points toward the joint (red).
+        <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 p-5 shadow-sm">
+          <div class="flex flex-col gap-3">
+            <div class="flex items-center gap-3">
+              <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600">⇪</span>
+              <div>
+                <p class="text-sm font-semibold text-slate-800">Optional batch import</p>
+                <p class="text-sm text-slate-600">Paste or upload a structure file—only the first member per joint will be applied.</p>
+              </div>
+            </div>
+            <textarea id="structureText" class="w-full min-h-[120px] rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-900 shadow-inner shadow-slate-100 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200" placeholder="A,AB,0,Tension,50
+A,AC,45,Compression,30
+B,BA,180,Reaction,18"></textarea>
+            <div class="flex flex-wrap items-center gap-2">
+              <button id="applyStructureBtn" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-0.5">Apply structure</button>
+              <button id="importFileBtn" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-0.5" title="Import structure from JSON/CSV">Import file</button>
+              <input type="file" id="importFile" accept=".json,.csv,.txt" class="hidden" />
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
-    <section class="relative rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-50 p-4 shadow-lg shadow-slate-200/50">
-      <canvas id="cnv" width="1400" height="950" aria-label="diagram canvas" class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-inner shadow-slate-100"></canvas>
-      <div class="mt-3 flex flex-wrap gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-        <span class="inline-flex items-center gap-2"><span class="h-1 w-5 rounded-full bg-emerald-600"></span> Tension</span>
-        <span class="inline-flex items-center gap-2"><span class="h-1 w-5 rounded-full bg-blue-600"></span> Compression</span>
-        <span class="inline-flex items-center gap-2"><span class="h-1 w-5 rounded-full bg-red-600"></span> Reaction</span>
-        <span class="inline-flex items-center gap-2"><span class="h-1 w-5 rounded-full bg-slate-500"></span> Direction only</span>
+    <section class="relative rounded-3xl border border-white/80 bg-gradient-to-b from-white to-slate-50 p-5 shadow-2xl shadow-slate-200/60 ring-1 ring-slate-100">
+      <div class="flex items-center justify-between px-1 pb-3">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Preview</p>
+          <h2 class="text-lg font-semibold text-slate-900">Live canvas</h2>
+        </div>
+        <div class="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-600 shadow-sm">
+          <span class="inline-flex items-center gap-2"><span class="h-1 w-5 rounded-full bg-emerald-600"></span> Tension</span>
+          <span class="inline-flex items-center gap-2"><span class="h-1 w-5 rounded-full bg-blue-600"></span> Compression</span>
+          <span class="inline-flex items-center gap-2"><span class="h-1 w-5 rounded-full bg-red-600"></span> Reaction</span>
+          <span class="inline-flex items-center gap-2"><span class="h-1 w-5 rounded-full bg-slate-500"></span> Direction only</span>
+        </div>
       </div>
+      <canvas id="cnv" width="1400" height="950" aria-label="diagram canvas" class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-inner shadow-slate-100"></canvas>
     </section>
   </main>
 
@@ -109,8 +201,11 @@ B,BA,180,Reaction,18"></textarea>
   }
   new ResizeObserver(fitCanvas).observe(cnv);
 
-  const membersWrap = $('#members');
-  const addMemberBtn = $('#addMemberBtn');
+  const memberNameInput = $('#memberName');
+  const memberDirInput = $('#memberDir');
+  const memberSenseInput = $('#memberSense');
+  const memberMagInput = $('#memberMag');
+  const dirButtons = $$('.dirbtn');
   const exportJpegBtn = $('#exportJpegBtn');
   const exportSvgBtn = $('#exportSvgBtn');
   const exportZipBtn = $('#exportZipBtn');
@@ -125,7 +220,6 @@ B,BA,180,Reaction,18"></textarea>
 
   const truss = new Map();
   let currentJoint = 'A';
-  let memberId = 0;
   let lastRender = null; // geometry and bbox for exports
 
   function updateJointTabs(){
@@ -133,7 +227,7 @@ B,BA,180,Reaction,18"></textarea>
     for(const [name] of truss){
       const btn = document.createElement('button');
       btn.className = (name === currentJoint)
-        ? 'rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-semibold text-indigo-700 shadow-sm ring-1 ring-indigo-200 transition'
+        ? 'rounded-lg border border-brand-200 bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-700 shadow-sm ring-1 ring-brand-200 transition'
         : 'rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-0.5';
       btn.textContent = name;
       btn.title = `Switch to joint ${name}`;
@@ -147,18 +241,13 @@ B,BA,180,Reaction,18"></textarea>
     truss.set(currentJoint, members);
   }
 
-  function clearMembersDom(){
-    membersWrap.innerHTML = '';
-    memberId = 0;
-  }
-
   function loadMembers(list){
-    clearMembersDom();
-    if(!list || !list.length){
-      makeMemberRow({});
-      return;
-    }
-    list.forEach(m => makeMemberRow(m));
+    const m = (list && list[0]) || {};
+    memberNameInput.value = m.name || '';
+    memberDirInput.value = (m.dir ?? '') === null ? '' : (m.dir ?? '');
+    memberSenseInput.value = m.sense || '';
+    const magDisplay = m.magStr !== undefined ? m.magStr : (m.mag ?? '');
+    memberMagInput.value = magDisplay === null ? '' : (magDisplay ?? '');
   }
 
   function switchJoint(name){
@@ -184,7 +273,8 @@ B,BA,180,Reaction,18"></textarea>
     currentJoint = 'A';
     truss.set(currentJoint, []);
     jointInput.value = currentJoint;
-    loadMembers([]);
+    loadMembers([{name:'AB', dir:45}]);
+    saveCurrentJoint();
     updateJointTabs();
     draw();
   }
@@ -194,75 +284,75 @@ B,BA,180,Reaction,18"></textarea>
     return val;
   }
 
-  function makeMemberRow(init={}){
-    memberId += 1;
-    const id = memberId;
-    const row = document.createElement('div');
-    row.className = 'row grid grid-cols-[160px_210px_240px_170px_56px] items-end gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm max-lg:grid-cols-1';
-    row.dataset.id = id;
-    row.innerHTML = `
-      <div>
-        <input type="text" class="memName w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-900 shadow-inner shadow-slate-100 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200" placeholder="AB" value="${init.name||''}" />
-      </div>
-      <div>
-        <input type="number" step="0.1" min="0" max="360" class="dir w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-900 shadow-inner shadow-slate-100 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200" placeholder="0 → right" value="${init.dir??''}" />
-        <div class="mt-2 grid grid-cols-8 gap-1">
-          <button class="dirbtn rounded-lg border border-slate-200 bg-white px-2 py-1 text-sm font-semibold text-slate-700 shadow-sm" data-deg="0" title="Right">→</button>
-          <button class="dirbtn rounded-lg border border-slate-200 bg-white px-2 py-1 text-sm font-semibold text-slate-700 shadow-sm" data-deg="45" title="NE">↗</button>
-          <button class="dirbtn rounded-lg border border-slate-200 bg-white px-2 py-1 text-sm font-semibold text-slate-700 shadow-sm" data-deg="90" title="Up">↑</button>
-          <button class="dirbtn rounded-lg border border-slate-200 bg-white px-2 py-1 text-sm font-semibold text-slate-700 shadow-sm" data-deg="135" title="NW">↖</button>
-          <button class="dirbtn rounded-lg border border-slate-200 bg-white px-2 py-1 text-sm font-semibold text-slate-700 shadow-sm" data-deg="180" title="Left">←</button>
-          <button class="dirbtn rounded-lg border border-slate-200 bg-white px-2 py-1 text-sm font-semibold text-slate-700 shadow-sm" data-deg="225" title="SW">↙</button>
-          <button class="dirbtn rounded-lg border border-slate-200 bg-white px-2 py-1 text-sm font-semibold text-slate-700 shadow-sm" data-deg="270" title="Down">↓</button>
-          <button class="dirbtn rounded-lg border border-slate-200 bg-white px-2 py-1 text-sm font-semibold text-slate-700 shadow-sm" data-deg="315" title="SE">↘</button>
-        </div>
-      </div>
-      <div>
-        <select class="sense w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-900 shadow-inner shadow-slate-100 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200">
-          <option value="">— direction only —</option>
-          <option value="Tension">Tension (green)</option>
-          <option value="Compression">Compression (blue)</option>
-          <option value="Reaction">Reaction (red)</option>
-        </select>
-      </div>
-      <div>
-        <input type="number" step="0.01" class="mag w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-900 shadow-inner shadow-slate-100 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200" placeholder="e.g., 64.94" value="${init.mag??''}" />
-      </div>
-      <div>
-        <button class="delete w-full rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-bold text-rose-700 shadow-sm transition hover:bg-rose-100" title="Remove this member">✕</button>
-      </div>
-    `;
-
-    row.addEventListener('input', draw);
-    row.addEventListener('change', draw);
-    row.querySelectorAll('.dirbtn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        row.querySelector('.dir').value = btn.dataset.deg;
-        draw();
-      });
-    });
-    row.querySelector('.delete').addEventListener('click', (e) => {
-      e.preventDefault();
-      row.remove();
-      draw();
-    });
-
-    membersWrap.appendChild(row);
-    draw();
-  }
-
   function getMembers(){
     const joint = sanitizeJointName(jointInput.value || currentJoint);
-    return $$('.row', membersWrap).map(row => {
-      const name = $('.memName', row).value.trim().toUpperCase();
-      const dirVal = $('.dir', row).value;
-      const dir = dirVal === '' ? null : parseFloat(dirVal);
-      const sense = $('.sense', row).value;
-      const magStr = $('.mag', row).value.trim();
-      const mag = magStr === '' ? null : parseFloat(magStr);
-      return { name, dir: (dir!==null && Number.isFinite(dir)) ? dir : null, sense, mag, magStr, joint };
-    });
+    const name = memberNameInput.value.trim().toUpperCase();
+    const dirVal = memberDirInput.value;
+    const dir = dirVal === '' ? null : parseFloat(dirVal);
+    const sense = memberSenseInput.value;
+    const magStr = memberMagInput.value.trim();
+    const mag = magStr === '' ? null : parseFloat(magStr);
+    return [{ name, dir: (dir!==null && Number.isFinite(dir)) ? dir : null, sense, mag: (mag!==null && Number.isFinite(mag)) ? mag : null, magStr, joint }];
+  }
+
+  function parseStructure(text){
+    const res = new Map();
+    const raw = (text || '').trim();
+    if(!raw) return res;
+    try{
+      const data = JSON.parse(raw);
+      if(Array.isArray(data)){
+        for(const entry of data){
+          const j = sanitizeJointName(entry.joint || entry.name || '');
+          if(!j) continue;
+          const members = Array.isArray(entry.members) ? entry.members.map(m => ({
+            name:(m.name||'').toString().toUpperCase(),
+            dir: m.dir===null||m.dir===undefined?null:Number(m.dir),
+            sense: m.sense||m.type||'',
+            mag: m.mag===null||m.mag===undefined?null:Number(m.mag),
+            magStr: m.mag===null||m.mag===undefined? '': String(m.mag)
+          })) : [];
+          res.set(j, members);
+        }
+      }
+      if(res.size) return res;
+    }catch(e){ /* fall back to line parser */ }
+
+    const lines = raw.split(/\r?\n/);
+    for(const line of lines){
+      const clean = line.trim();
+      if(!clean || clean.startsWith('#')) continue;
+      const parts = clean.split(/[,;\t]/).map(p=>p.trim());
+      if(parts.length < 2) continue;
+      const [jRaw, nameRaw, dirRaw, senseRaw, magRaw] = parts;
+      const joint = sanitizeJointName(jRaw);
+      if(!joint) continue;
+      const members = res.get(joint) || [];
+      const dir = dirRaw === '' || dirRaw === undefined ? null : Number(dirRaw);
+      const mag = magRaw === '' || magRaw === undefined ? null : Number(magRaw);
+      members.push({
+        name:(nameRaw||'').toUpperCase(),
+        dir: Number.isFinite(dir)?dir:null,
+        sense: senseRaw || '',
+        mag: Number.isFinite(mag)?mag:null,
+        magStr: (magRaw??'').toString(),
+        joint
+      });
+      res.set(joint, members);
+    }
+    return res;
+  }
+
+  function applyStructure(res){
+    if(!res || !res.size) return;
+    saveCurrentJoint();
+    truss.clear();
+    for(const [j, members] of res){
+      const first = Array.isArray(members) && members.length ? [members[0]] : [];
+      truss.set(sanitizeJointName(j), first);
+    }
+    const first = res.keys().next().value || 'A';
+    switchJoint(first);
   }
 
   function parseStructure(text){
@@ -931,13 +1021,25 @@ B,BA,180,Reaction,18"></textarea>
     downloadBlob('truss-joints.zip', zipBlob);
   }
 
+  dirButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      memberDirInput.value = btn.dataset.deg;
+      saveCurrentJoint();
+      draw();
+    });
+  });
+
+  [memberNameInput, memberDirInput, memberSenseInput, memberMagInput].forEach(el => {
+    el.addEventListener('input', () => { saveCurrentJoint(); draw(); });
+    el.addEventListener('change', () => { saveCurrentJoint(); draw(); });
+  });
+
   clearBtn.addEventListener('click', () => {
     loadMembers([]);
     truss.set(currentJoint, []);
     draw();
   });
-
-  addMemberBtn.addEventListener('click', () => makeMemberRow({}));
 
   jointInput.addEventListener('input', () => {
     const clean = sanitizeJointName(jointInput.value || currentJoint);
@@ -973,8 +1075,6 @@ B,BA,180,Reaction,18"></textarea>
 
   // Initial state
   resetToSingleJoint();
-  makeMemberRow({ name:'AB', dir: 45 });
-  truss.set(currentJoint, getMembers());
   updateJointTabs();
   fitCanvas();
   draw();
