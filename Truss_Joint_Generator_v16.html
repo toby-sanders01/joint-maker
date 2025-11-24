@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Truss Joint Diagram Generator</title>
+<style>
+  :root{
+    --bg:#ffffff;
+    --panel:#f5f7ff;
+    --muted:#6b6f7d;
+    --text:#10131a;
+    --accent:#3b57b3;
+    --green:#2e7d32;
+    --blue:#1e88e5;
+    --red:#c62828;
+    --gray:#7a7f8d;
+    --border:#d3d7e4;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:#f2f4fb;
+    color:var(--text);
+    font:15px/1.4 "Times New Roman", Times, serif;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+  }
+  header{
+    padding:16px 20px;
+    display:flex;
+    gap:10px 12px;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+    border-bottom:1px solid var(--border);
+    background:#ffffff;
+    position:sticky; top:0; z-index:5;
+  }
+  header h1{
+    margin:0;
+    font-weight:700;
+    font-size:18px;
+    letter-spacing:.2px;
+  }
+  .badge{
+    font-size:11px;
+    padding:2px 7px;
+    border-radius:999px;
+    background:#eef2ff;
+    color:#3346a0;
+    border:1px solid #cdd6ff;
+    margin-left:10px;
+  }
+  .btnbar{display:flex; gap:10px; flex-wrap:wrap}
+  button{
+    background:#2f4bb8;
+    color:#fff;
+    border:1px solid #2a43a3;
+    padding:10px 14px;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:700;
+  }
+  .ghost{background:#f3f5ff; color:#23316c; border-color:#cfd6ff}
+  main{
+    display:grid;
+    grid-template-columns: clamp(680px, 46vw, 800px) 1fr;
+    gap:18px;
+    padding:18px;
+    width:100%;
+    max-width:1600px;
+    margin:0 auto;
+    flex:1;
+  }
+  @media (max-width: 1100px){
+    main{grid-template-columns: 1fr; }
+  }
+  .panel{
+    background:#ffffff;
+    border:1px solid var(--border);
+    border-radius:14px;
+    box-shadow: 0 6px 18px rgba(0,0,0,.06);
+  }
+  .controls{ padding:16px; display:flex; flex-direction:column; gap:12px; min-width:660px;}
+  label{display:block; font-weight:700; margin-bottom:6px;}
+  input[type="text"], input[type="number"], select{
+    width:100%;
+    background:#fff;
+    border:1px solid var(--border);
+    color:#2a2f3b;
+    border-radius:10px;
+    padding:10px 12px;
+    outline:none;
+  }
+  input[type="text"]::placeholder, input[type="number"]::placeholder{color:#9aa0af}
+  .row{
+    display:grid;
+    grid-template-columns: 160px 210px 240px 170px 56px;
+    gap:10px; align-items:end;
+  }
+  .head{grid-template-columns: 160px 210px 240px 170px 56px;}
+  .muted{color:var(--muted); font-size:13px}
+  .canvas-wrap{position:relative; padding:12px;}
+  canvas{width:100%; height:auto; border-radius:10px; background:#ffffff; border:1px solid var(--border)}
+  .legend{display:flex; gap:14px; padding:10px 14px; border-top:1px solid var(--border); color:#333; font-size:13px; background:#fafbff; border-radius:0 0 14px 14px}
+  .chip{display:inline-flex; align-items:center; gap:6px}
+  .sw{width:14px; height:4px; border-radius:2px; background:var(--gray); display:inline-block}
+  .sw.green{background:var(--green)}
+  .sw.blue{background:var(--blue)}
+  .sw.red{background:var(--red)}
+  .sw.gray{background:#8a8f9e}
+  .member-card{padding:12px; border:1px dashed var(--border); border-radius:12px; background:#fbfcff}
+  .delete{
+    padding:10px 0; text-align:center; border-radius:8px;
+    background:#f2f4ff; border:1px solid #cfd6ff; color:#2f3f8c; font-weight:700;
+  }
+  .delete:hover{background:#e8edff}
+  .quickdir{display:grid; grid-template-columns: repeat(8, 1fr); gap:4px; margin-top:6px;}
+  .dirbtn{
+    padding:6px 0;
+    border-radius:8px;
+    border:1px solid var(--border);
+    background:#fff;
+    color:#2a2f3b;
+    cursor:pointer;
+    font-size:14px;
+    line-height:1;
+  }
+  .tip{color:#4b587a; font-size:12px}
+</style>
+</head>
+<body>
+  <header>
+    <h1>Truss Joint Diagram <span class="badge">single-file app</span></h1>
+    <div class="btnbar">
+      <button id="exportJpegBtn" title="Download cropped JPEG (high-res)">Export JPEG</button>
+      <button id="exportSvgBtn" class="ghost" title="Download cropped SVG">Export SVG</button>
+      <button id="clearBtn" class="ghost" title="Clear all members">Clear</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel">
+      <div class="controls">
+        <div>
+          <label for="jointName">Joint name</label>
+          <input id="jointName" type="text" placeholder="A" maxlength="6" />
+          <div class="tip">Names are auto-uppercased. The diagram updates as you type.</div>
+        </div>
+
+        <div class="member-card">
+          <div class="row head" style="font-weight:700; color:#1b2344;">
+            <div>Member name</div>
+            <div>Direction (°)</div>
+            <div>Type / Sense</div>
+            <div>Magnitude (kN)</div>
+            <div>&nbsp;</div>
+          </div>
+
+          <div id="members" style="display:flex; flex-direction:column; gap:10px;"></div>
+
+          <div style="margin-top:8px">
+            <button id="addMemberBtn">+ Member</button>
+          </div>
+        </div>
+
+        <div class="muted">
+          • <b>Tension</b> = arrow points away from the joint (green).<br/>
+          • <b>Compression</b> = arrow points toward the joint (blue).<br/>
+          • <b>Reaction</b> = arrow points toward the joint (red).
+        </div>
+      </div>
+    </section>
+
+    <section class="panel canvas-wrap">
+      <canvas id="cnv" width="1400" height="950" aria-label="diagram canvas"></canvas>
+      <div class="legend">
+        <span class="chip"><span class="sw green"></span> Tension</span>
+        <span class="chip"><span class="sw blue"></span> Compression</span>
+        <span class="chip"><span class="sw red"></span> Reaction</span>
+        <span class="chip"><span class="sw gray"></span> Direction only</span>
+      </div>
+    </section>
+  </main>
+
+<script>
+(() => {
+  const $ = (sel, el=document) => el.querySelector(sel);
+  const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
+
+  const cnv = $('#cnv');
+  const ctx = cnv.getContext('2d');
+  const DPR = Math.max(1, window.devicePixelRatio || 1);
+
+  function fitCanvas() {
+    const w = cnv.clientWidth;
+    const h = cnv.clientHeight;
+    cnv.width = Math.round(w * DPR);
+    cnv.height = Math.round(h * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    draw();
+  }
+  new ResizeObserver(fitCanvas).observe(cnv);
+
+  const membersWrap = $('#members');
+  const addMemberBtn = $('#addMemberBtn');
+  const exportJpegBtn = $('#exportJpegBtn');
+  const exportSvgBtn = $('#exportSvgBtn');
+  const clearBtn = $('#clearBtn');
+  const jointInput = $('#jointName');
+
+  let memberId = 0;
+  let lastRender = null; // geometry and bbox for exports
+
+  function makeMemberRow(init={}){
+    memberId += 1;
+    const id = memberId;
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.dataset.id = id;
+    row.innerHTML = `
+      <div>
+        <input type="text" class="memName" placeholder="AB" value="${init.name||''}" />
+      </div>
+      <div>
+        <input type="number" step="0.1" min="0" max="360" class="dir" placeholder="0 → right" value="${init.dir??''}" />
+        <div class="quickdir">
+          <button class="dirbtn" data-deg="0" title="Right">→</button>
+          <button class="dirbtn" data-deg="45" title="NE">↗</button>
+          <button class="dirbtn" data-deg="90" title="Up">↑</button>
+          <button class="dirbtn" data-deg="135" title="NW">↖</button>
+          <button class="dirbtn" data-deg="180" title="Left">←</button>
+          <button class="dirbtn" data-deg="225" title="SW">↙</button>
+          <button class="dirbtn" data-deg="270" title="Down">↓</button>
+          <button class="dirbtn" data-deg="315" title="SE">↘</button>
+        </div>
+      </div>
+      <div>
+        <select class="sense">
+          <option value="">— direction only —</option>
+          <option value="Tension">Tension (green)</option>
+          <option value="Compression">Compression (blue)</option>
+          <option value="Reaction">Reaction (red)</option>
+        </select>
+      </div>
+      <div>
+        <input type="number" step="0.01" class="mag" placeholder="e.g., 64.94" value="${init.mag??''}" />
+      </div>
+      <div>
+        <button class="delete" title="Remove this member">✕</button>
+      </div>
+    `;
+
+    row.addEventListener('input', draw);
+    row.addEventListener('change', draw);
+    row.querySelectorAll('.dirbtn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        row.querySelector('.dir').value = btn.dataset.deg;
+        draw();
+      });
+    });
+    row.querySelector('.delete').addEventListener('click', (e) => {
+      e.preventDefault();
+      row.remove();
+      draw();
+    });
+
+    membersWrap.appendChild(row);
+    draw();
+  }
+
+  function getMembers(){
+    const joint = (jointInput.value || 'A').trim().toUpperCase();
+    return $$('.row', membersWrap).map(row => {
+      const name = $('.memName', row).value.trim().toUpperCase();
+      const dirVal = $('.dir', row).value;
+      const dir = dirVal === '' ? null : parseFloat(dirVal);
+      const sense = $('.sense', row).value;
+      const magStr = $('.mag', row).value.trim();
+      const mag = magStr === '' ? null : parseFloat(magStr);
+      return { name, dir: (dir!==null && Number.isFinite(dir)) ? dir : null, sense, mag, magStr, joint };
+    });
+  }
+
+  function clearCanvas(){
+    const w = cnv.width / DPR;
+    const h = cnv.height / DPR;
+    ctx.save();
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.clearRect(0,0,cnv.width,cnv.height);
+    ctx.restore();
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0,0,w,h);
+  }
+
+  // geometry helpers
+  function expandBBox(b, x, y){ b.minX = Math.min(b.minX, x); b.minY = Math.min(b.minY, y); b.maxX = Math.max(b.maxX, x); b.maxY = Math.max(b.maxY, y); }
+  function expandRect(b, cx, cy, w, h, rot){
+    const hw = w/2, hh = h/2;
+    const c = Math.cos(-rot||0), s = Math.sin(-rot||0);
+    const pts = [[-hw,-hh],[hw,-hh],[hw,hh],[-hw,hh]];
+    for(const [dx,dy] of pts){
+      const x = cx + c*dx - s*dy;
+      const y = cy + s*dx + c*dy;
+      expandBBox(b, x, y);
+    }
+  }
+
+  function drawArrow(x1,y1,x2,y2, color, headAtEnd=true, b=null, c=ctx){
+    // line
+    c.strokeStyle = color;
+    c.lineWidth = 3;
+    c.lineCap = 'round';
+    c.beginPath();
+    c.moveTo(x1,y1);
+    c.lineTo(x2,y2);
+    c.stroke();
+    if(b){ expandBBox(b, x1, y1); expandBBox(b, x2, y2); }
+    // arrow head (larger)
+    const ang = Math.atan2(y2 - y1, x2 - x1);
+    const size = 14;
+    const hx = headAtEnd ? x2 : x1;
+    const hy = headAtEnd ? y2 : y1;
+    const theta = headAtEnd ? ang : ang + Math.PI;
+
+    c.beginPath();
+    c.moveTo(hx, hy);
+    const p1 = [hx - size * Math.cos(theta - Math.PI/7), hy - size * Math.sin(theta - Math.PI/7)];
+    const p2 = [hx - size * Math.cos(theta + Math.PI/7), hy - size * Math.sin(theta + Math.PI/7)];
+    c.lineTo(...p1);
+    c.lineTo(...p2);
+    c.closePath();
+    c.fillStyle = color;
+    c.fill();
+    if(b){ expandBBox(b, hx, hy); expandBBox(b, p1[0], p1[1]); expandBBox(b, p2[0], p2[1]); }
+  }
+
+  function distancePointToSegment(px,py, x1,y1,x2,y2){
+    const A = px - x1;
+    const B = py - y1;
+    const C = x2 - x1;
+    const D = y2 - y1;
+    const dot = A*C + B*D;
+    const len_sq = C*C + D*D;
+    let param = -1;
+    if (len_sq !== 0) param = dot / len_sq;
+    let xx, yy;
+    if (param < 0) { xx = x1; yy = y1; }
+    else if (param > 1) { xx = x2; yy = y2; }
+    else { xx = x1 + param * C; yy = y1 + param * D; }
+    const dx = px - xx;
+    const dy = py - yy;
+    return Math.sqrt(dx*dx + dy*dy);
+  }
+
+  function measure(text, font){
+    ctx.save();
+    ctx.font = font;
+    const w = ctx.measureText(text).width;
+    ctx.restore();
+    return {w, h: 16};
+  }
+
+  function projAlong(px,py, x1,y1, ux,uy){
+    return ( (px - x1) * ux + (py - y1) * uy );
+  }
+
+  function draw(){
+    clearCanvas();
+    const w = cnv.width / DPR;
+    const h = cnv.height / DPR;
+    const cx = Math.round(w*0.62);
+    const cy = Math.round(h*0.50);
+
+    const joint = (jointInput.value || 'A').trim().toUpperCase();
+    const L = Math.min(w,h) * 0.28;
+
+    const style = getComputedStyle(document.documentElement);
+    const colors = {
+      'Tension': style.getPropertyValue('--green').trim(),
+      'Compression': style.getPropertyValue('--blue').trim(),
+      'Reaction': style.getPropertyValue('--red').trim(),
+      'Guide': '#8a8f9e'
+    };
+
+    const members = getMembers();
+
+    const segments = []; // for exports
+    const labels = [];   // for exports
+    const bbox = {minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity};
+
+    const END_MARGIN = 24; // min distance of magnitude text from both ends
+
+    function rectHitsPlaced(x,y,tw,th){
+      const r = Math.hypot(tw, th) * 0.48;
+      for(const p of labels){
+        const rp = Math.hypot(p.tw, p.th) * 0.48;
+        const d = Math.hypot(x - p.x, y - p.y);
+        if(d < r + rp + 2) return true;
+      }
+      return false;
+    }
+    function candidateHitsSegments(x,y,tw,th, angle, along, allowOverlap){
+      if(allowOverlap) return false; // allow over-the-line for magnitudes
+      for(const s of segments){
+        const d = distancePointToSegment(x, y, s.x1, s.y1, s.x2, s.y2);
+        const threshold = along ? Math.max(th/2 + 8, 14) : Math.max(Math.hypot(tw,th)*0.50, 9);
+        if(d < threshold) return true;
+      }
+      return false;
+    }
+    function tooCloseToEnds(x,y,tw,th, seg){
+      const half = tw/2;
+      const pr = projAlong(x,y, seg.x1, seg.y1, seg.ux, seg.uy);
+      return (pr - half) < END_MARGIN || (pr + half) > (seg.L - END_MARGIN);
+    }
+
+    function putNearPoint(text, baseX, baseY, opts={}){
+      const font = `${opts.size||16}px "Times New Roman", Times, serif`;
+      const m = measure(text, font);
+      const tw = m.w, th = m.h;
+      const radii = opts.radii || [0,2,4,6,8,12,16];
+      const dirs = opts.dirs || [0,45,90,135,180,225,270,315];
+      for(const r of radii){
+        for(const d of dirs){
+          const a = d*Math.PI/180;
+          const x = baseX + r*Math.cos(a);
+          const y = baseY - r*Math.sin(a);
+          if(!candidateHitsSegments(x,y,tw,th, 0, false, false) && !rectHitsPlaced(x,y,tw,th)){
+            const obj = {x,y,tw,th,rot:0, color:opts.color||'#000', font, text, alpha: 1, halo:false};
+            labels.push(obj);
+            expandRect(bbox, obj.x, obj.y, tw+4, th+4, obj.rot);
+            return obj;
+          }
+        }
+      }
+      const obj = {x:baseX,y:baseY,tw,th,rot:0, color:opts.color||'#000', font, text, alpha: 1, halo:false};
+      labels.push(obj);
+      expandRect(bbox, obj.x, obj.y, tw+4, th+4, obj.rot);
+      return obj;
+    }
+
+    function putLabel(text, baseX, baseY, opts={angle:0, color:'#000', size:16, alignAlong:false, nearPoint:false, seg:null, minNormal:null, halo:false, alpha:1, overLine:false}){
+      if(opts.nearPoint) return putNearPoint(text, baseX, baseY, opts);
+      const font = `${opts.size||16}px "Times New Roman", Times, serif`;
+      const m = measure(text, font);
+      const tw = m.w, th = m.h;
+
+      const tries = [];
+      if(opts.alignAlong){
+        const ang = opts.angle || 0;
+        const ux = Math.cos(ang), uy = Math.sin(ang);
+        const nx = -Math.sin(ang), ny = Math.cos(ang);
+        const minP = Math.max(opts.minNormal ?? 0, 0); // allow being on the line
+        for(let p=minP; p<=minP+8; p+=2){       // stay right on or near the line
+          for(let s=0; s<=36; s+=6){            // small slides along
+            tries.push([baseX + ux*s + nx*p, baseY - uy*s + ny*p, ang, true]);
+            if(s>0) tries.push([baseX - ux*s + nx*p, baseY + uy*s + ny*p, ang, true]);
+          }
+        }
+      }else{
+        const radii = [0,2,4,6,8,12];
+        const dirs = [0,45,90,135,180,225,270,315];
+        for(const r of radii){
+          for(const d of dirs){
+            const a = d*Math.PI/180;
+            tries.push([baseX + r*Math.cos(a), baseY - r*Math.sin(a), 0, false]);
+          }
+        }
+      }
+      for(const [x,y,rot,along] of tries){
+        if(opts.seg && along && tooCloseToEnds(x,y,tw,th, opts.seg)) continue;
+        if(!candidateHitsSegments(x,y,tw,th, rot, along, opts.overLine) && !rectHitsPlaced(x,y,tw,th)){
+          const obj = {x,y,tw,th,rot, color:opts.color, font, text, halo: !!opts.halo, alpha: opts.alpha ?? 1};
+          labels.push(obj);
+          const haloPad = obj.halo ? 4 : 0;
+          expandRect(bbox, obj.x, obj.y, tw+haloPad, th+haloPad, obj.rot);
+          return obj;
+        }
+      }
+      const obj = {x:baseX,y:baseY,tw,th,rot:opts.angle||0, color:opts.color, font, text, halo: !!opts.halo, alpha: opts.alpha ?? 1};
+      labels.push(obj);
+      const haloPad = obj.halo ? 4 : 0;
+      expandRect(bbox, obj.x, obj.y, tw+haloPad, th+haloPad, obj.rot);
+      return obj;
+    }
+
+    // Draw members and labels
+    const JOINT = {x: cx, y: cy};
+    for(const m of members){
+      if(m.dir === null) continue;
+      const rad = (m.dir % 360) * Math.PI/180;
+      const x2 = cx + L*Math.cos(rad);
+      const y2 = cy - L*Math.sin(rad);
+      const ux = Math.cos(rad), uy = -Math.sin(rad); // canvas y inverted
+      const nx = -Math.sin(rad), ny = Math.cos(rad);
+
+      const seg = {x1:cx, y1:cy, x2, y2, ux, uy, L, color:colors[m.sense] || '#8a8f9e', dashed: !m.sense, headAtEnd: !(m.sense === 'Compression' || m.sense === 'Reaction')};
+
+      // store for export
+      segments.push(seg);
+
+      // draw
+      if(!m.sense){
+        ctx.strokeStyle = 'rgba(120,120,130,.5)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([6,6]);
+        ctx.beginPath();
+        ctx.moveTo(cx,cy);
+        ctx.lineTo(x2,y2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        expandBBox(bbox, cx, cy); expandBBox(bbox, x2, y2);
+      } else {
+        drawArrow(cx, cy, x2, y2, seg.color, seg.headAtEnd, bbox);
+      }
+
+      // Far-end node letter
+      const name = (m.name||'').replace(/[^A-Z]/g,'').toUpperCase();
+      if(name){
+        const letters = name.split('');
+        const other = letters.find(ch => ch !== m.joint) || name;
+        const tipx = cx + L*ux, tipy = cy + L*uy;
+        const fx = tipx + nx*10;
+        const fy = tipy + ny*10;
+        putLabel(other, fx, fy, {size:16, color:'#000', nearPoint:true});
+      }
+
+      // Magnitude label (over the line)
+      if(m.magStr && m.magStr.length && m.sense){
+        const frac = 0.62;
+        const base = { x: cx + (L*frac)*ux, y: cy + (L*frac)*uy };
+        const obj = putLabel(`${m.magStr} kN`, base.x, base.y, {
+          angle: rad,
+          color: colors[m.sense],
+          size: 16,
+          alignAlong: true,
+          seg,
+          overLine: true,
+          halo: true,
+          alpha: 0.92
+        });
+        obj.rot = (Math.cos(rad) < 0) ? (rad + Math.PI) : rad;
+      }
+    }
+
+    // Joint node + label
+    ctx.fillStyle = '#000000';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 4, 0, Math.PI*2);
+    ctx.fill();
+    expandBBox(bbox, cx-4, cy-4); expandBBox(bbox, cx+4, cy+4);
+
+    putNearPoint((joint||'A'), cx, cy, {
+      size:16, color:'#000',
+      radii:[8,10,12,14,16,18,20],
+      dirs:[0,45,315,90,270,135,225,180]
+    });
+
+    // Render labels on top
+    for(const p of labels){
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(-(p.rot || 0));
+      ctx.font = p.font || '16px "Times New Roman", Times, serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      if(p.halo){
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = '#ffffff';
+        ctx.strokeText(p.text, 0, 0);
+      }
+      ctx.globalAlpha = p.alpha ?? 1;
+      ctx.fillStyle = p.color || '#000';
+      ctx.fillText(p.text, 0, 0);
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
+
+    // Save render info for exports
+    const PAD = 12;
+    const minX = Math.max(0, Math.floor(bbox.minX - PAD));
+    const minY = Math.max(0, Math.floor(bbox.minY - PAD));
+    const maxX = Math.min(w, Math.ceil(bbox.maxX + PAD));
+    const maxY = Math.min(h, Math.ceil(bbox.maxY + PAD));
+    lastRender = {
+      width: w, height: h, bbox:{x:minX,y:minY,w:Math.max(4,maxX-minX),h:Math.max(4,maxY-minY)},
+      segments, labels, joint: JOINT, colors
+    };
+  }
+
+  // ----- EXPORTS -----
+  function downloadDataURI(name, dataURI){
+    const link = document.createElement('a');
+    link.download = name;
+    link.href = dataURI;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
+
+  // High-res (4x) cropped JPEG export by re-rendering vector content
+  exportJpegBtn.addEventListener('click', () => {
+    const name = (jointInput.value||'joint').trim() || 'joint';
+    if(!lastRender){ draw(); }
+    const SCALE = 4; // 4x size
+    const {bbox, segments, labels, joint} = lastRender;
+
+    const off = document.createElement('canvas');
+    // upscale with DPR for retina-quality
+    const PX = Math.max(1, Math.round(bbox.w * SCALE * DPR));
+    const PY = Math.max(1, Math.round(bbox.h * SCALE * DPR));
+    off.width = PX; off.height = PY;
+    const c = off.getContext('2d');
+    // white background
+    c.fillStyle = '#ffffff';
+    c.fillRect(0,0,PX,PY);
+    // scale and translate so we re-draw in vector at higher res, cropped to bbox
+    c.setTransform(DPR*SCALE, 0, 0, DPR*SCALE, -bbox.x*DPR*SCALE, -bbox.y*DPR*SCALE);
+
+    // helpers reuse
+    const style = getComputedStyle(document.documentElement);
+    c.lineCap = 'round';
+
+    // draw segments
+    for(const s of segments){
+      if(s.dashed){
+        c.strokeStyle = 'rgba(120,120,130,.5)';
+        c.lineWidth = 1.5;
+        c.setLineDash([6,6]);
+        c.beginPath();
+        c.moveTo(s.x1,s.y1);
+        c.lineTo(s.x2,s.y2);
+        c.stroke();
+        c.setLineDash([]);
+      }else{
+        drawArrow(s.x1,s.y1,s.x2,s.y2, s.color, s.headAtEnd, null, c);
+      }
+    }
+    // joint
+    c.fillStyle = '#000';
+    c.beginPath();
+    c.arc(joint.x, joint.y, 4, 0, Math.PI*2);
+    c.fill();
+
+    // labels
+    for(const p of labels){
+      c.save();
+      c.translate(p.x, p.y);
+      c.rotate(-(p.rot || 0));
+      const fontSize = /(\d+)px/.exec(p.font||'16px')?.[1] || 16;
+      c.font = `${fontSize}px "Times New Roman", Times, serif`; // scaled by transform
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      if(p.halo){
+        c.lineWidth = 4;
+        c.strokeStyle = '#ffffff';
+        c.strokeText(p.text, 0, 0);
+      }
+      c.globalAlpha = p.alpha ?? 1;
+      c.fillStyle = p.color || '#000';
+      c.fillText(p.text, 0, 0);
+      c.globalAlpha = 1;
+      c.restore();
+    }
+
+    downloadDataURI(`${name}.jpg`, off.toDataURL('image/jpeg', 1.0));
+  });
+
+  exportSvgBtn.addEventListener('click', () => {
+    const name = (jointInput.value||'joint').trim() || 'joint';
+    if(!lastRender){ draw(); }
+    const {bbox, segments, labels, joint} = lastRender;
+
+    function esc(s){return (''+s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+
+    // Build SVG with cropped viewBox
+    let svg = [];
+    svg.push(`<svg xmlns="http://www.w3.org/2000/svg" width="${bbox.w}" height="${bbox.h}" viewBox="${bbox.x} ${bbox.y} ${bbox.w} ${bbox.h}" font-family="Times New Roman, Times, serif">`);
+    svg.push(`<defs>
+      <marker id="arrowGreenEnd" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+        <path d="M 10 5 L 0 1 L 0 9 z" fill="#2e7d32" />
+      </marker>
+      <marker id="arrowBlueEnd" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+        <path d="M 10 5 L 0 1 L 0 9 z" fill="#1e88e5" />
+      </marker>
+      <marker id="arrowRedEnd" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+        <path d="M 10 5 L 0 1 L 0 9 z" fill="#c62828" />
+      </marker>
+      <marker id="arrowGreenStart" viewBox="0 0 10 10" refX="0" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+        <path d="M 0 5 L 10 1 L 10 9 z" fill="#2e7d32" />
+      </marker>
+      <marker id="arrowBlueStart" viewBox="0 0 10 10" refX="0" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+        <path d="M 0 5 L 10 1 L 10 9 z" fill="#1e88e5" />
+      </marker>
+      <marker id="arrowRedStart" viewBox="0 0 10 10" refX="0" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+        <path d="M 0 5 L 10 1 L 10 9 z" fill="#c62828" />
+      </marker>
+    </defs>`);
+
+    function markerId(color, headAtEnd){
+      if(color==='#2e7d32') return headAtEnd?'arrowGreenEnd':'arrowGreenStart';
+      if(color==='#1e88e5') return headAtEnd?'arrowBlueEnd':'arrowBlueStart';
+      if(color==='#c62828') return headAtEnd?'arrowRedEnd':'arrowRedStart';
+      return null;
+    }
+
+    // Segments
+    for(const s of segments){
+      const dashed = s.dashed;
+      const mk = markerId(s.color, s.headAtEnd);
+      svg.push(`<path d="M ${s.x1} ${s.y1} L ${s.x2} ${s.y2}" fill="none" stroke="${esc(s.color)}" stroke-width="3" stroke-linecap="round" ${dashed?'stroke-dasharray="6 6"':''} ${mk? (s.headAtEnd?`marker-end="url(#${mk})"`:`marker-start="url(#${mk})"`) : ''} />`);
+    }
+
+    // Joint
+    svg.push(`<circle cx="${joint.x}" cy="${joint.y}" r="4" fill="#000"/>`);
+
+    // Labels (halo then fill)
+    for(const p of labels){
+      const deg = -(p.rot||0) * 180/Math.PI;
+      const fontSize = /(\d+)px/.exec(p.font||'16px')?.[1] || 16;
+      if(p.halo){
+        svg.push(`<text x="${p.x}" y="${p.y}" font-size="${fontSize}" text-anchor="middle" dominant-baseline="middle" fill="none" stroke="#ffffff" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" transform="rotate(${deg} ${p.x} ${p.y})">${esc(p.text)}</text>`);
+      }
+      svg.push(`<text x="${p.x}" y="${p.y}" font-size="${fontSize}" text-anchor="middle" dominant-baseline="middle" fill="${esc(p.color||'#000')}" fill-opacity="${p.alpha??1}" transform="rotate(${deg} ${p.x} ${p.y})">${esc(p.text)}</text>`);
+    }
+
+    svg.push(`</svg>`);
+    const blob = new Blob([svg.join('')], {type:'image/svg+xml'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${name}.svg`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+
+  clearBtn.addEventListener('click', () => {
+    membersWrap.innerHTML = '';
+    makeMemberRow({});
+    draw();
+  });
+  // FIX: wire up the + Member button
+  addMemberBtn.addEventListener('click', () => makeMemberRow({}));
+  jointInput.addEventListener('input', draw);
+
+  // Initial row
+  makeMemberRow({ name:'AB', dir: 45 });
+  fitCanvas();
+  draw();
+})();
+</script>
+</body>
+</html>
