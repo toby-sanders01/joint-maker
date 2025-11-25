@@ -211,6 +211,7 @@ B,BA,180,Reaction,18"></textarea>
   const cnv = $('#cnv');
   const ctx = cnv.getContext('2d');
   const DPR = Math.max(1, window.devicePixelRatio || 1);
+  const DEFAULT_FONT_SIZE = 50; // increased default for clearer output
 
   function fitCanvas() {
     const w = cnv.clientWidth;
@@ -430,8 +431,8 @@ B,BA,180,Reaction,18"></textarea>
       c.save();
       c.translate(p.x, p.y);
       c.rotate(-(p.rot || 0));
-      const fontMatch = /(\d+)px/.exec(p.font||'16px');
-      const fSize = fontMatch ? Number(fontMatch[1]) : 16;
+      const fontMatch = /(\d+)px/.exec(p.font || `${DEFAULT_FONT_SIZE}px`);
+      const fSize = fontMatch ? Number(fontMatch[1]) : DEFAULT_FONT_SIZE;
       c.font = `${fSize}px "Times New Roman", Times, serif`;
       c.textAlign = 'center';
       c.textBaseline = 'middle';
@@ -543,7 +544,7 @@ B,BA,180,Reaction,18"></textarea>
     ctx.font = font;
     const w = ctx.measureText(text).width;
     ctx.restore();
-    return {w, h: 16};
+    return {w, h: DEFAULT_FONT_SIZE};
   }
 
   function projAlong(px,py, x1,y1, ux,uy){
@@ -604,7 +605,7 @@ B,BA,180,Reaction,18"></textarea>
     }
 
     function putNearPoint(text, baseX, baseY, opts={}){
-      const font = `${opts.size||16}px "Times New Roman", Times, serif`;
+      const font = `${opts.size||DEFAULT_FONT_SIZE}px "Times New Roman", Times, serif`;
       const m = measure(text, font);
       const tw = m.w, th = m.h;
       const radii = opts.radii || [0,2,4,6,8,12,16];
@@ -628,9 +629,9 @@ B,BA,180,Reaction,18"></textarea>
       return obj;
     }
 
-    function putLabel(text, baseX, baseY, opts={angle:0, color:'#000', size:16, alignAlong:false, nearPoint:false, seg:null, minNormal:null, halo:false, alpha:1, overLine:false}){
+    function putLabel(text, baseX, baseY, opts={angle:0, color:'#000', size:DEFAULT_FONT_SIZE, alignAlong:false, nearPoint:false, seg:null, minNormal:null, halo:false, alpha:1, overLine:false}){
       if(opts.nearPoint) return putNearPoint(text, baseX, baseY, opts);
-      const font = `${opts.size||16}px "Times New Roman", Times, serif`;
+      const font = `${opts.size||DEFAULT_FONT_SIZE}px "Times New Roman", Times, serif`;
       const m = measure(text, font);
       const tw = m.w, th = m.h;
 
@@ -711,7 +712,7 @@ B,BA,180,Reaction,18"></textarea>
         const tipx = cx + L*ux, tipy = cy + L*uy;
         const fx = tipx + nx*10;
         const fy = tipy + ny*10;
-        putLabel(other, fx, fy, {size:16, color:'#000', nearPoint:true});
+        putLabel(other, fx, fy, {size:DEFAULT_FONT_SIZE, color:'#000', nearPoint:true});
       }
 
       // Magnitude label (over the line)
@@ -721,7 +722,7 @@ B,BA,180,Reaction,18"></textarea>
         const obj = putLabel(`${m.magStr} kN`, base.x, base.y, {
           angle: rad,
           color: colors[m.sense],
-          size: 16,
+          size: DEFAULT_FONT_SIZE,
           alignAlong: true,
           seg,
           overLine: true,
@@ -740,7 +741,7 @@ B,BA,180,Reaction,18"></textarea>
     expandBBox(bbox, cx-4, cy-4); expandBBox(bbox, cx+4, cy+4);
 
     putNearPoint((joint||'A'), cx, cy, {
-      size:16, color:'#000',
+      size:DEFAULT_FONT_SIZE, color:'#000',
       radii:[8,10,12,14,16,18,20],
       dirs:[0,45,315,90,270,135,225,180]
     });
@@ -750,7 +751,7 @@ B,BA,180,Reaction,18"></textarea>
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.rotate(-(p.rot || 0));
-      ctx.font = p.font || '16px "Times New Roman", Times, serif';
+      ctx.font = p.font || `${DEFAULT_FONT_SIZE}px "Times New Roman", Times, serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       if(p.halo){
@@ -826,7 +827,7 @@ B,BA,180,Reaction,18"></textarea>
       c.save();
       c.translate(p.x, p.y);
       c.rotate(-(p.rot || 0));
-      const fontSize = /(\d+)px/.exec(p.font||'16px')?.[1] || 16;
+      const fontSize = /(\d+)px/.exec(p.font || `${DEFAULT_FONT_SIZE}px`)?.[1] || DEFAULT_FONT_SIZE;
       c.font = `${fontSize}px "Times New Roman", Times, serif`;
       c.textAlign = 'center';
       c.textBaseline = 'middle';
@@ -885,8 +886,8 @@ B,BA,180,Reaction,18"></textarea>
       c.save();
       c.translate(p.x, p.y);
       c.rotate(-(p.rot || 0));
-      const fontMatch = /(\d+)px/.exec(p.font||'16px');
-      const fSize = fontMatch ? Number(fontMatch[1]) : 16;
+      const fontMatch = /(\d+)px/.exec(p.font || `${DEFAULT_FONT_SIZE}px`);
+      const fSize = fontMatch ? Number(fontMatch[1]) : DEFAULT_FONT_SIZE;
       c.font = `${fSize}px "Times New Roman", Times, serif`;
       c.textAlign = 'center';
       c.textBaseline = 'middle';
@@ -974,7 +975,7 @@ B,BA,180,Reaction,18"></textarea>
 
     for(const p of labels){
       const deg = -(p.rot||0) * 180/Math.PI;
-      const fontSize = /(\d+)px/.exec(p.font||'16px')?.[1] || 16;
+      const fontSize = /(\d+)px/.exec(p.font || `${DEFAULT_FONT_SIZE}px`)?.[1] || DEFAULT_FONT_SIZE;
       if(p.halo){
         svg.push(`<text x="${p.x}" y="${p.y}" font-size="${fontSize}" text-anchor="middle" dominant-baseline="middle" fill="none" stroke="#ffffff" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" transform="rotate(${deg} ${p.x} ${p.y})">${esc(p.text)}</text>`);
       }
