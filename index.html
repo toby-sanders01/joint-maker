@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+><!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -36,6 +36,7 @@
   body{font-family: "Inter", system-ui, -apple-system, sans-serif;}
   canvas{width:100%; height:auto;}
 
+<<<<<<< Updated upstream:index.html
   /* Make grid children able to shrink so columns don't expand to fit
      intrinsic-width children (prevents the Sense/select from escaping
      the rounded card at intermediate widths). */
@@ -99,6 +100,49 @@
     .member-row .grid > :nth-child(1) label,
     .member-row .grid > :nth-child(3) label,
     .member-row .grid > :nth-child(4) label { display: block; }
+=======
+  /* Increase border thickness and spacing on common laptop sizes so controls
+     don't feel cramped (1024px - 1440px). Also add a slightly larger rule
+     for wider laptops. Uses !important to override Tailwind utility styles. */
+  @media (min-width: 1024px) and (max-width: 1440px) {
+    .rounded-2xl.border,
+    .rounded-2xl.border-dashed,
+    .row,
+    .rounded-xl.border,
+    .rounded-lg.border {
+      border-width: 2px !important;
+      border-color: rgb(203 213 225) !important; /* slate-300 */
+    }
+
+    .row {
+      gap: 1rem !important;
+      padding: 1rem !important;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select,
+    textarea,
+    button {
+      padding-top: 0.7rem !important;
+      padding-bottom: 0.7rem !important;
+    }
+
+    .rounded-2xl.p-6, .rounded-2xl.p-4 {
+      padding: 1rem !important;
+    }
+
+    .shadow-sm { box-shadow: 0 2px 4px rgba(2,6,23,0.06) !important; }
+  }
+
+  /* Slightly larger spacing for very wide laptop / desktop laptop screens */
+  @media (min-width: 1441px) and (max-width: 1920px) {
+    .rounded-2xl.border,
+    .row,
+    .rounded-xl.border,
+    .rounded-lg.border { border-width: 2px !important; }
+    .row { gap: 1.1rem !important; padding: 1rem !important; }
+>>>>>>> Stashed changes:Truss_Joint_Generator_v16.html
   }
 </style>
 </head>
